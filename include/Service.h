@@ -2,7 +2,6 @@
 #include <queue>
 #include <thread>
 #include <Msg.h>
-
 using namespace std;
 
 class Service {
@@ -37,5 +36,5 @@ public:
     void ProcressMsgs(int max);
 private:
     // 取出一条消息
-    shared_ptr<BaseMsg> PropMsg();    
+    shared_ptr<BaseMsg> PopMsg();    
 };
