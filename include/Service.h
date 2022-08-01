@@ -2,10 +2,13 @@
 #include <queue>
 #include <thread>
 #include <Msg.h>
+
 using namespace std;
 
 class Service {
 public:
+    // 为了效率灵活放public
+    
     // 唯一id
     uint32_t id;    
     // 类型

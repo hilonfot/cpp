@@ -48,6 +48,27 @@ shared_ptr<BaseMsg> Service::PopMsg(){
     return msg;
 }
 
+// 处理一条消息，返回值代表是否处理
+bool Service::ProcressMsg(){
+    shared_ptr<BaseMsg> msg = PopMsg();
+    if (msg){
+        OnMsg(msg);
+        return true;
+    }else{
+        return false; // 返回值预示着队列是否为空
+    }
+}
+
+// 处理N条消息， 返回值代表是否处理
+void Service::ProcressMsgs(int max){
+    for (int i=0;i<max;i++){
+        bool succ = ProcressMsg();
+        if (!succ){
+            break;
+        }
+    }
+}
+
 // 析构函数
 Service::~Service(){
     pthread_spin_destroy(&queueLock);

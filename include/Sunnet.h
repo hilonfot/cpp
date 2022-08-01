@@ -1,11 +1,21 @@
 #pragma once
 #include <vector>
 #include "Worker.h"
+#include "Service.h"
+#include <unordered_map>
+
+class Worker;
 
 class Sunnet{
     public:
         // 单例
         static Sunnet* inst;
+        // 服务列表
+        unordered_map<uint32_t,shared_ptr<Service>> services;
+        // 最大ID
+        uint32_t maxId = 0;
+        // 读写锁
+        pthread_rwlock_t servicesLock;
     public:
         // 构造函数
         Sunnet();
@@ -13,6 +23,9 @@ class Sunnet{
         void Start();
         // 等待运行
         void Wait();
+        // 增删服务
+        uint32_t NewService(shared_ptr<string> type);
+        void KillService(uint32_t id);
     private:
         // 工作线程
         int WORKER_NUM = 3; // 工作线程数(配置)
@@ -21,5 +34,7 @@ class Sunnet{
     private:
         // 开启工作线程
         void StartWorker();
+        // 获取服务
+        shared_ptr<Service> GetService(uint32_t id);
 };
 

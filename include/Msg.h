@@ -1,6 +1,5 @@
 #pragma once 
 #include <memory>
-#include <stdint.h>
 using namespace std;
 
 // 消息基类
