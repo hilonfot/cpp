@@ -5,12 +5,13 @@
 
 using namespace std;
 
-class Service {
+class Service
+{
 public:
     // 为了效率灵活放public
-    
+
     // 唯一id
-    uint32_t id;    
+    uint32_t id;
     // 类型
     shared_ptr<string> type;
     // 是否正在退出
@@ -19,11 +20,17 @@ public:
     queue<shared_ptr<BaseMsg>> msgQueue;
     /*
         MacOx not pthread_spinlock_t
-        If the performance of your lock is not critical, 
-        pthread_mutex_t can be used as a drop replacement for pthread_spinlock_t, 
+        If the performance of your lock is not critical,
+        pthread_mutex_t can be used as a drop replacement for pthread_spinlock_t,
         which makes porting easy.
     */
     pthread_spinlock_t queueLock;
+    // 标记是否在全局队列， true: 表示在队列里，或正在处理
+    bool inGlobal = false;
+    pthread_spinlock_t inGlobalLock;
+    // 线程安全地设置inGlobal
+    void SetInGlobal(bool isIn);
+
 public:
     // 构造函数和析构函数
     Service();
@@ -37,7 +44,8 @@ public:
     // 执行消息
     bool ProcressMsg();
     void ProcressMsgs(int max);
+
 private:
     // 取出一条消息
-    shared_ptr<BaseMsg> PopMsg();    
+    shared_ptr<BaseMsg> PopMsg();
 };

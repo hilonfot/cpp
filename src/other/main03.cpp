@@ -52,7 +52,6 @@ using namespace std;
 //     // 关闭打开的文件
 //     outfile.close();
 
-
 //     // -------- 读取 --------
 //     ifstream infile;
 //     infile.open("afile.dat");

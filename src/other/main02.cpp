@@ -4,40 +4,40 @@ using namespace std;
 // 05. 抽象类
 class Shape
 {
-    public:
-        virtual int  getArea() = 0;
-        void setWidth(int w )
-        {
-            width = w;
-        } 
-        void setHeight(int h)
-        {
-            height = h;
-        }
+public:
+    virtual int getArea() = 0;
+    void setWidth(int w)
+    {
+        width = w;
+    }
+    void setHeight(int h)
+    {
+        height = h;
+    }
 
-    protected:
-        int width;
-        int height;    
+protected:
+    int width;
+    int height;
 };
 
 // 派生类
-class Rectangle: public Shape{
-    public:
-        int getArea()
-        {
-            return (width*height);
-        }
-};
-
-class Triangele: public Shape
+class Rectangle : public Shape
 {
-    public:
-        int getArea()
-        {
-            return (width*height)/2;
-        }
+public:
+    int getArea()
+    {
+        return (width * height);
+    }
 };
 
+class Triangele : public Shape
+{
+public:
+    int getArea()
+    {
+        return (width * height) / 2;
+    }
+};
 
 int main(void)
 {
@@ -65,7 +65,7 @@ int main(void)
 //         {
 //             width = a;
 //             height = b;
-//         }    
+//         }
 //         // 纯虚函数
 //         virtual void area() = 0;
 // };
@@ -127,7 +127,7 @@ int main(void)
 //             cout << "字符串：" << c << endl;
 //         }
 // };
-// 
+//
 // int main(void)
 // {
 //     printData pd;
@@ -140,13 +140,13 @@ int main(void)
 // }
 
 // 02. 继承
-// class Shape 
+// class Shape
 // {
 //     public:
 //         void setWidth(int w)
 //         {
 //             width = w;
-//         } 
+//         }
 
 //         void setHeight(int h)
 //         {
@@ -182,7 +182,7 @@ int main(void)
 // class Box
 // {
 //     public:
-//         double length; 
+//         double length;
 //         double width;
 //         double height;
 //         // 成员函数声明
