@@ -16,6 +16,8 @@ void Sunnet::Start()
     // 锁
     pthread_rwlock_init(&servicesLock, NULL);
     pthread_spin_init(&globalLock, PTHREAD_PROCESS_PRIVATE);
+    pthread_cond_init(&sleepCond, NULL);
+    pthread_mutex_init(&sleepMtx, NULL);
     // 开启Woker
     StartWorker();
 }
@@ -128,7 +130,8 @@ void Sunnet::PushGlobalQueue(shared_ptr<Service> srv)
 }
 
 // 测试
-shared_ptr<BaseMsg> Sunnet::MakeMsg(uint32_t source, char* buff,int len){
+shared_ptr<BaseMsg> Sunnet::MakeMsg(uint32_t source, char *buff, int len)
+{
     auto msg = make_shared<ServiceMsg>();
     msg->type = BaseMsg::TYPE::SERVICE;
     msg->source = source;
@@ -138,6 +141,64 @@ shared_ptr<BaseMsg> Sunnet::MakeMsg(uint32_t source, char* buff,int len){
     // 所以无需重写智能指针的销毁方法
     msg->buff = shared_ptr<char>(buff);
     msg->size = len;
-        
+
     return msg;
+}
+
+// Worker 线程调用，进入休眠
+void Sunnet::WorkerWait()
+{
+    pthread_mutex_lock(&sleepMtx);
+    {
+        sleepCount++;
+        pthread_cond_wait(&sleepCond, &sleepMtx);
+        sleepCount--;
+    }
+    pthread_mutex_unlock(&sleepMtx);
+}
+
+// 检查并唤醒线程
+void Sunnet::CheckAndWeakUp()
+{
+    // unsafe
+    if (sleepCount == 0)
+    {
+        return;
+    }
+    if (WORKER_NUM - sleepCount <= gloabalLen)
+    {
+        cout << "weakup " << endl;
+        pthread_cond_signal(&sleepCond);
+    }
+}
+
+// 发送消息
+void Sunnet::Send(uint32_t toId, shared_ptr<BaseMsg> msg)
+{
+    shared_ptr<Service> toSrv = GetService(toId);
+    if (!toSrv)
+    {
+        cout << "Send fail, toSrv not exist toId:" << toId << endl;
+        return;
+    }
+
+    // 插入目标服务的消息队列
+    toSrv->PushMsg(msg);
+    // 检查并放入全局队列
+    bool hasPush = false;
+    pthread_spin_lock(&toSrv->inGlobalLock);
+    {
+        if (!toSrv->inGlobal)
+        {
+            PushGlobalQueue(toSrv);
+            toSrv->inGlobal = true;
+            hasPush = true;
+        }
+    }
+    pthread_spin_unlock(&toSrv->inGlobalLock);
+    // 唤起进程， 不放在临界区里面
+    if (hasPush)
+    {
+        CheckAndWeakUp();
+    }
 }

@@ -105,33 +105,6 @@ void Service::SetInGlobal(bool isIn)
     pthread_spin_unlock(&inGlobalLock);
 }
 
-// 发送消息
-void Sunnet::Send(uint32_t toId, shared_ptr<BaseMsg> msg)
-{
-    shared_ptr<Service> toSrv = GetService(toId);
-    if (!toSrv)
-    {
-        cout << "Send fail, toSrv not exist toId:" << toId << endl;
-        return;
-    }
-
-    // 插入目标服务的消息队列
-    toSrv->PushMsg(msg);
-    // 检查并放入全局队列
-    bool hasPush = false;
-    pthread_spin_lock(&toSrv->inGlobalLock);
-    {
-        if (!toSrv->inGlobal)
-        {
-            PushGlobalQueue(toSrv);
-            toSrv->inGlobal = true;
-            hasPush = true;
-        }
-    }
-    pthread_spin_unlock(&toSrv->inGlobalLock);
-    // todo 唤起进程（后面再实现）
-}
-
 // 析构函数
 Service::~Service()
 {

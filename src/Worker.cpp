@@ -12,7 +12,7 @@ void Worker::operator()()
     shared_ptr<Service> srv = Sunnet::inst->PopGlobalQueue();
     if (!srv)
     {
-      usleep(100);
+      Sunnet::inst->WorkerWait();
     }
     else
     {

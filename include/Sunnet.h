@@ -36,11 +36,20 @@ public:
     // 测试
     shared_ptr<BaseMsg> MakeMsg(uint32_t source, char *buff, int len);
 
+    // 唤醒工作线程
+    void CheckAndWeakUp();
+    // 让工作线程等待(仅工作线程调用)
+    void WorkerWait();
 private:
     // 工作线程
     int WORKER_NUM = 3;             // 工作线程数(配置)
     vector<Worker *> workers;       // worker对象
-    vector<thread *> workerThreads; // 线程s
+    vector<thread *> workerThreads; // 线程
+    // 休眠和唤醒
+    pthread_mutex_t sleepMtx;
+    pthread_cond_t sleepCond;
+    // 休眠工作线程数
+    int sleepCount = 0;
 private:
     // 开启工作线程
     void StartWorker();
