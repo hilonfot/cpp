@@ -38,7 +38,7 @@ public:
 class SocketRWMsg : public BaseMsg
 {
 public:
-    int Fd;
+    int fd;
     bool isRead = false;
     bool isWrite = false;
 };
