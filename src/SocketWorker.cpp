@@ -37,7 +37,7 @@ void SocketWorker::operator()()
     }
 }
 
-// 注意垮线程调用
+// 注意跨线程调用
 void SocketWorker::AddEvent(int fd)
 {
     cout << "AddEvent fd " << endl;
@@ -51,14 +51,14 @@ void SocketWorker::AddEvent(int fd)
     }
 }
 
-// 垮线程调用
+// 跨线程调用
 void SocketWorker::RemoveEvent(int fd)
 {
     cout << "RemoveEvent fd " << fd << endl;
     epoll_ctl(epollFd, EPOLL_CTL_DEL, fd, NULL);
 }
 
-// 垮线程调用
+// 跨线程调用
 void SocketWorker::ModifyEvent(int fd, bool epollOut)
 {
     cout << "ModifyEvent fd " << fd << "  " << epollOut << endl;

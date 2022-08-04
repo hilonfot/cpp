@@ -1,4 +1,14 @@
 #include "Sunnet.h"
+#include <unistd.h>
+
+int TestSocketCtrl()
+{
+    int fd = Sunnet::inst->Listen(8001, 1);
+    usleep(15 * 100000);
+    Sunnet::inst->CloseConn(fd);
+
+    return fd;
+}
 
 void test()
 {
@@ -18,7 +28,7 @@ int main()
 {
     new Sunnet();
     Sunnet::inst->Start();
-    test();
+    TestSocketCtrl();
     // 开启系统后的一些逻辑
     Sunnet::inst->Wait();
 

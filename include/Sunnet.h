@@ -47,6 +47,11 @@ public:
     int AddConn(int fd, uint32_t id, Conn::TYPE type);
     shared_ptr<Conn> GetConn(int fd);
     bool RemoveConn(int fd);
+
+    // 网络连接操作接口
+    int Listen(uint32_t port, uint32_t serviceId);
+    void CloseConn(uint32_t fd);
+
 private:
     // 工作线程
     int WORKER_NUM = 3;             // 工作线程数(配置)
@@ -65,6 +70,7 @@ private:
     // Conn列表
     unordered_map<uint32_t, shared_ptr<Conn>> conns;
     pthread_rwlock_t connsLock; // 读写锁
+
 private:
     // 开启工作线程
     void StartWorker();
