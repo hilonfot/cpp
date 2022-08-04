@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Sunnet.h"
+#include <assert.h>
 using namespace std;
 
 // 单例
@@ -12,7 +13,7 @@ Sunnet::Sunnet()
 // 开启系统
 void Sunnet::Start()
 {
-    cout << "hello sunnet! " << endl;
+    cout << "Hello Sunnet." << endl;
     // 锁
     pthread_rwlock_init(&servicesLock, NULL);
     pthread_spin_init(&globalLock, PTHREAD_PROCESS_PRIVATE);
@@ -20,6 +21,9 @@ void Sunnet::Start()
     pthread_mutex_init(&sleepMtx, NULL);
     // 开启Woker
     StartWorker();
+    // 开启Socket线程
+    StartSocket();
+    assert(pthread_rwlock_init(&connsLock, NULL) == 0);
 }
 
 // 开启线程
@@ -201,4 +205,57 @@ void Sunnet::Send(uint32_t toId, shared_ptr<BaseMsg> msg)
     {
         CheckAndWeakUp();
     }
+}
+
+// 开启Socket线程
+void Sunnet::StartSocket()
+{
+    // 创建线程对象
+    socketWorker = new SocketWorker();
+    // 初始化
+    socketWorker->Init();
+    // 创建线程
+    socketThread = new thread(*socketWorker);
+}
+
+// 添加连接
+int Sunnet::AddConn(int fd, uint32_t id, Conn::TYPE type)
+{
+    auto conn = make_shared<Conn>();
+    conn->fd = fd;
+    conn->serviceId = id;
+    conn->type = type;
+    pthread_rwlock_wrlock(&connsLock);
+    {
+        conns.emplace(fd, conn);
+    }
+    pthread_rwlock_unlock(&connsLock);
+    return fd;
+}
+
+// 通过id查找连接
+shared_ptr<Conn> Sunnet::GetConn(int fd)
+{
+    shared_ptr<Conn> conn = NULL;
+    pthread_rwlock_rdlock(&connsLock);
+    {
+        unordered_map<uint32_t, shared_ptr<Conn>>::iterator iter = conns.find(fd);
+        if (iter != conns.end())
+        {
+            conn = iter->second;
+        }
+    }
+    pthread_rwlock_unlock(&connsLock);
+    return conn;
+}
+
+bool Sunnet::RemoveConn(int fd)
+{
+    int result;
+    pthread_rwlock_wrlock(&connsLock);
+    {
+        result = conns.erase(fd);
+    }
+    pthread_rwlock_unlock(&connsLock);
+    return result == 1;
 }

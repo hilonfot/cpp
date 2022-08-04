@@ -6,9 +6,12 @@ using namespace std;
 class BaseMsg
 {
 public:
+    // 消息类型
     enum TYPE
-    { // 消息类型
-        SERVICE = 1,
+    {
+        SERVICE = 1,       // 服务间消息
+        SOCKET_ACCEPT = 2, // 有新的客户端连接
+        SOCKET_RW = 3,     // 客户端可读可写
     };
 
     uint8_t type;         // 消息类型
@@ -23,4 +26,19 @@ public:
     uint32_t source;       // 消息发送方
     shared_ptr<char> buff; // 消息内容
     size_t size;           // 消息内容大小
+};
+
+class SocketAcceptMsg : public BaseMsg
+{
+public:
+    int listenFd;
+    int clientFd;
+};
+
+class SocketRWMsg : public BaseMsg
+{
+public:
+    int Fd;
+    bool isRead = false;
+    bool isWrite = false;
 };

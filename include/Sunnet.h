@@ -2,6 +2,8 @@
 #include <vector>
 #include "Worker.h"
 #include "Service.h"
+#include "SocketWorker.h"
+#include "Conn.h"
 #include <unordered_map>
 
 class Worker;
@@ -40,6 +42,12 @@ public:
     void CheckAndWeakUp();
     // 让工作线程等待(仅工作线程调用)
     void WorkerWait();
+
+    // 增删查Conn
+    int AddConn(int fd, uint32_t id, Conn::TYPE type);
+    shared_ptr<Conn> GetConn(int fd);
+    bool RemoveConn(int fd);
+
 private:
     // 工作线程
     int WORKER_NUM = 3;             // 工作线程数(配置)
@@ -50,6 +58,14 @@ private:
     pthread_cond_t sleepCond;
     // 休眠工作线程数
     int sleepCount = 0;
+
+    // socket 线程
+    SocketWorker *socketWorker;
+    thread *socketThread;
+
+    // Conn列表
+    unordered_map<uint32_t, shared_ptr<Conn>> conns;
+    pthread_rwlock_t connsLock; // 读写锁
 private:
     // 开启工作线程
     void StartWorker();
@@ -59,4 +75,7 @@ private:
     queue<shared_ptr<Service>> globalQueue;
     int gloabalLen = 0;            // 队列长度
     pthread_spinlock_t globalLock; // 锁
+
+    // 开启Socket线程
+    void StartSocket();
 };

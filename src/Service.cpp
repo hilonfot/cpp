@@ -25,7 +25,7 @@ void Service::OnMsg(shared_ptr<BaseMsg> msg)
         auto m = dynamic_pointer_cast<ServiceMsg>(msg);
         cout << "[" << id << "] OnMsg " << m->buff << endl;
         auto msgRet = Sunnet::inst->MakeMsg(id, new char[9999999]{'p', 'i', 'n', 'g', '\0'}, 9999999);
-        Sunnet::inst->Send(m->source,msgRet);
+        Sunnet::inst->Send(m->source, msgRet);
     }
     else
     {
