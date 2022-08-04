@@ -47,7 +47,6 @@ public:
     int AddConn(int fd, uint32_t id, Conn::TYPE type);
     shared_ptr<Conn> GetConn(int fd);
     bool RemoveConn(int fd);
-
 private:
     // 工作线程
     int WORKER_NUM = 3;             // 工作线程数(配置)
