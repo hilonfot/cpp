@@ -1,6 +1,7 @@
 #include "Service.h"
 #include "Sunnet.h"
 #include <iostream>
+#include <unistd.h>
 
 // 构造函数
 Service::Service()
@@ -19,17 +20,21 @@ void Service::OnInit()
 // 收到消息时触发
 void Service::OnMsg(shared_ptr<BaseMsg> msg)
 {
-    // 测试用
+    // SERVICE
     if (msg->type == BaseMsg::TYPE::SERVICE)
     {
         auto m = dynamic_pointer_cast<ServiceMsg>(msg);
-        cout << "[" << id << "] OnMsg " << m->buff << endl;
-        auto msgRet = Sunnet::inst->MakeMsg(id, new char[9999999]{'p', 'i', 'n', 'g', '\0'}, 9999999);
-        Sunnet::inst->Send(m->source, msgRet);
+        OnServiceMsg(m);
     }
-    else
+    else if (msg->type == BaseMsg::TYPE::SOCKET_ACCEPT)
     {
-        cout << "[" << id << "] OnMsg" << endl;
+        auto m = dynamic_pointer_cast<SocketAcceptMsg>(msg);
+        OnAcceptMsg(m);
+    }
+    else if (msg->type == BaseMsg::TYPE::SOCKET_RW)
+    {
+        auto m = dynamic_pointer_cast<SocketRWMsg>(msg);
+        OnRWMsg(m);
     }
 }
 
@@ -103,6 +108,78 @@ void Service::SetInGlobal(bool isIn)
         inGlobal = isIn;
     }
     pthread_spin_unlock(&inGlobalLock);
+}
+
+// 收到其他服务发来的消息
+void Service::OnServiceMsg(shared_ptr<ServiceMsg> msg)
+{
+    cout << "OnserviceMsg" << endl;
+}
+
+// 新连接
+void Service::OnAcceptMsg(shared_ptr<SocketAcceptMsg> msg)
+{
+    cout << "OnAcceptMsg " << msg->clientFd << endl;
+}
+
+// 套接字可读可写
+void Service::OnRWMsg(shared_ptr<SocketRWMsg> msg)
+{
+    int fd = msg->fd;
+    // 可读
+    if (msg->isRead)
+    {
+        const int BUFFSIZE = 512;
+        char buff[BUFFSIZE];
+        int len = 0;
+        do
+        {
+            len = read(fd, &buff, BUFFSIZE);
+            if (len > 0)
+            {
+                OnSocketData(fd, buff, len);
+            }
+        } while (len == BUFFSIZE);
+
+        if (len <= 0 && errno != EAGAIN)
+        {
+            if (Sunnet::inst->GetConn(fd))
+            {
+                OnSocketClose(fd);
+                Sunnet::inst->CloseConn(fd);
+            }
+        }
+    }
+
+    // 可写(注意没有else)
+    if (msg->isWrite)
+    {
+        if (Sunnet::inst->GetConn(fd))
+        {
+            OnSocketWritable(fd);
+        }
+    }
+}
+
+// 收到客户端数据
+void Service::OnSocketData(int fd, const char *buff, int len)
+{
+    cout << "OnSocketData  " << fd << "  buff: " << buff << endl;
+    // echo
+    char writeBuff[3] = {'l', 'p', 'y'};
+    write(fd, &writeBuff, 3);
+}
+
+// 套接字可写
+void Service::OnSocketWritable(int fd)
+{
+    cout << "OnSocketWritable  " << fd << endl;
+}
+
+// 关闭连接前
+void Service::OnSocketClose(int fd)
+{
+    cout << "OnSocketClose  " << fd << endl;
 }
 
 // 析构函数

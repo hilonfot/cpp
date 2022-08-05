@@ -122,7 +122,7 @@ void SocketWorker::OnAccept(shared_ptr<Conn> conn)
     // 步骤2: 设置非阻塞
     fcntl(clientFd, F_SETFL, O_NONBLOCK);
     // 步骤3: 添加连接对象
-    Sunnet::inst->AddConn(clientFd, conn->serviceId);
+    Sunnet::inst->AddConn(clientFd, conn->serviceId, Conn::TYPE::CLIENT);
     Conn::TYPE::CLIENT;
     // 步骤4: 添加到epoll监听对象
     struct epoll_event ev;

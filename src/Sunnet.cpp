@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Sunnet.h"
 #include <assert.h>
+#include <signal.h>
 // net
 #include <unistd.h>
 #include <fcntl.h>
@@ -21,6 +22,8 @@ Sunnet::Sunnet()
 void Sunnet::Start()
 {
     cout << "Hello Sunnet." << endl;
+    // 忽略SIGPIPE信号
+    signal(SIGPIPE, SIG_IGN);
     // 锁
     pthread_rwlock_init(&servicesLock, NULL);
     pthread_spin_init(&globalLock, PTHREAD_PROCESS_PRIVATE);
@@ -309,7 +312,7 @@ void Sunnet::CloseConn(uint32_t fd)
     bool succ = RemoveConn(fd);
     // 关闭套接字
     close(fd);
-    // 删除epoll对象套节字的监听(跨线程)
+    // 删除epoll对象套接字的监听(跨线程)
     if (succ)
     {
         socketWorker->RemoveEvent(fd);
