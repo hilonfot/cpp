@@ -28,6 +28,9 @@ int main()
 {
     new Sunnet();
     Sunnet::inst->Start();
+    // 启动min服务
+    auto t = make_shared<string>("main");
+    Sunnet::inst->NewService(t);
     TestSocketCtrl();
     // 开启系统后的一些逻辑
     Sunnet::inst->Wait();
