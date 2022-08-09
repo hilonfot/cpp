@@ -318,3 +318,8 @@ void Sunnet::CloseConn(uint32_t fd)
         socketWorker->RemoveEvent(fd);
     }
 }
+
+void Sunnet::ModifyEvent(int fd, bool epollOut)
+{
+    socketWorker->ModifyEvent(fd, epollOut);
+}

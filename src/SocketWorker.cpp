@@ -121,7 +121,13 @@ void SocketWorker::OnAccept(shared_ptr<Conn> conn)
     }
     // 步骤2: 设置非阻塞
     fcntl(clientFd, F_SETFL, O_NONBLOCK);
-    // 步骤3: 添加连接对象
+    // 写缓冲区大小
+    unsigned long buffsize = 4294967295;
+    if (setsockopt(clientFd, SOL_SOCKET, SO_SNDBUFFORCE, &buffsize, sizeof(buffsize)))
+    {
+        cout << "OnAccept setsockopt Fail " << strerror(errno) << endl;
+        return;
+    }
     Sunnet::inst->AddConn(clientFd, conn->serviceId, Conn::TYPE::CLIENT);
     Conn::TYPE::CLIENT;
     // 步骤4: 添加到epoll监听对象

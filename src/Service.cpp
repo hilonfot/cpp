@@ -2,6 +2,7 @@
 #include "Sunnet.h"
 #include <iostream>
 #include <unistd.h>
+#include <string.h>
 
 // 构造函数
 Service::Service()
@@ -15,6 +16,8 @@ Service::Service()
 void Service::OnInit()
 {
     cout << "[" << id << "] OnInit" << endl;
+    // 开启监听
+    Sunnet::inst->Sunnet::Listen(8002, id);
 }
 
 // 收到消息时触发
@@ -120,6 +123,9 @@ void Service::OnServiceMsg(shared_ptr<ServiceMsg> msg)
 void Service::OnAcceptMsg(shared_ptr<SocketAcceptMsg> msg)
 {
     cout << "OnAcceptMsg " << msg->clientFd << endl;
+    auto w = make_shared<ConnWriter>();
+    w->fd = msg->clientFd;
+    writers.emplace(msg->clientFd, w);
 }
 
 // 套接字可读可写
@@ -165,21 +171,29 @@ void Service::OnRWMsg(shared_ptr<SocketRWMsg> msg)
 void Service::OnSocketData(int fd, const char *buff, int len)
 {
     cout << "OnSocketData  " << fd << "  buff: " << buff << endl;
-    // echo
-    char writeBuff[3] = {'l', 'p', 'y'};
-    write(fd, &writeBuff, 3);
+    // 用ConnWriter发送大量数据
+    char *writeBuff = new char[4200000];
+    writeBuff[4200000 - 1] = 'e';
+    int r = write(fd, writeBuff, 4200000);
+    cout << "write r: " << r << "" << strerror(errno) << endl;
+    auto w = writers[fd];
+    w->EntireWrite(shared_ptr<char>(writeBuff), 4200000);
+    w->LingerClose();
 }
 
 // 套接字可写
 void Service::OnSocketWritable(int fd)
 {
     cout << "OnSocketWritable  " << fd << endl;
+    auto w = writers[fd];
+    w->OnWriteable();
 }
 
 // 关闭连接前
 void Service::OnSocketClose(int fd)
 {
     cout << "OnSocketClose  " << fd << endl;
+    writers.erase(fd);
 }
 
 // 析构函数

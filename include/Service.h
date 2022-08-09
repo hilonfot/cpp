@@ -2,7 +2,8 @@
 #include <queue>
 #include <thread>
 #include <Msg.h>
-
+#include "ConnWriter.h"
+#include <unordered_map>
 using namespace std;
 
 class Service
@@ -28,8 +29,8 @@ public:
     // 标记是否在全局队列， true: 表示在队列里，或正在处理
     bool inGlobal = false;
     pthread_spinlock_t inGlobalLock;
-    // 线程安全地设置inGlobal
-    void SetInGlobal(bool isIn);
+    // 业务逻辑（仅用于测试）
+    unordered_map<int, shared_ptr<ConnWriter>> writers;
 
 public:
     // 构造函数和析构函数
@@ -44,6 +45,8 @@ public:
     // 执行消息
     bool ProcressMsg();
     void ProcressMsgs(int max);
+    // 线程安全地设置inGlobal
+    void SetInGlobal(bool isIn);
 
 private:
     // 取出一条消息
@@ -52,7 +55,7 @@ private:
     void OnServiceMsg(shared_ptr<ServiceMsg> msg);
     void OnAcceptMsg(shared_ptr<SocketAcceptMsg> msg);
     void OnRWMsg(shared_ptr<SocketRWMsg> msg);
-    void OnSocketData(int fd, const char* buff,int len);
+    void OnSocketData(int fd, const char *buff, int len);
     void OnSocketWritable(int fd);
     void OnSocketClose(int fd);
 };

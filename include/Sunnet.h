@@ -51,6 +51,7 @@ public:
     // 网络连接操作接口
     int Listen(uint32_t port, uint32_t serviceId);
     void CloseConn(uint32_t fd);
+    void ModifyEvent(int fd, bool epollOut);
 
 private:
     // 工作线程
