@@ -4,6 +4,12 @@
 #include <Msg.h>
 #include "ConnWriter.h"
 #include <unordered_map>
+extern "C"
+{
+#include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
+}
 using namespace std;
 
 class Service
@@ -47,7 +53,9 @@ public:
     void ProcressMsgs(int max);
     // 线程安全地设置inGlobal
     void SetInGlobal(bool isIn);
-
+    // lua 虚拟机
+    lua_State *luaState;
+    
 private:
     // 取出一条消息
     shared_ptr<BaseMsg> PopMsg();
