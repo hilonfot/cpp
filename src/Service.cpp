@@ -3,6 +3,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <string.h>
+#include "LuaAPI.h"
 
 // 构造函数
 Service::Service()
@@ -12,6 +13,13 @@ Service::Service()
     pthread_spin_init(&inGlobalLock, PTHREAD_PROCESS_PRIVATE);
 }
 
+// 析构函数
+Service::~Service()
+{
+    pthread_spin_destroy(&queueLock);
+    pthread_spin_destroy(&inGlobalLock);
+}
+
 // 创建服务器后触发
 void Service::OnInit()
 {
@@ -19,8 +27,11 @@ void Service::OnInit()
     // 新建Lua虚拟机
     luaState = luaL_newstate();
     luaL_openlibs(luaState);
+    // 注册Sunet系统API
+    LuaAPI::Register(luaState);
     // 执行Lua文件
-    string filename = "../service/" + *type + "/init.lua";
+    string filename = "../service/"+*type+"/init.lua";
+    cout << "文件： " << filename << endl;
     int isok = luaL_dofile(luaState, filename.data());
     if (isok == 1)
     {
@@ -28,8 +39,14 @@ void Service::OnInit()
         cout << "run lua fail : " << lua_tostring(luaState, -1) << endl;
         return;
     }
-    // 开启监听
-    Sunnet::inst->Sunnet::Listen(8002, id);
+
+   //调用Lua函数
+    lua_getglobal(luaState, "OnInit"); 
+    lua_pushinteger(luaState, id); 
+    isok = lua_pcall(luaState, 1, 0, 0);
+    if(isok != 0){ //成功返回值为0，否则代表失败.
+         cout << "call lua OnInit fail " << lua_tostring(luaState, -1) << endl;
+    }
 }
 
 // 收到消息时触发
@@ -62,7 +79,7 @@ void Service::OnExit()
     int isok = lua_pcall(luaState, 0, 0, 0);
     if (isok != 0)
     {
-        cout << "call lua OnExit fail " << lua_tostring(luaState,-1) << endl;
+        cout << "call lua OnExit fail " << lua_tostring(luaState, -1) << endl;
     }
 
     // 关闭Lua虚拟机
@@ -216,11 +233,4 @@ void Service::OnSocketClose(int fd)
 {
     cout << "OnSocketClose  " << fd << endl;
     writers.erase(fd);
-}
-
-// 析构函数
-Service::~Service()
-{
-    pthread_spin_destroy(&queueLock);
-    pthread_spin_destroy(&inGlobalLock);
 }
