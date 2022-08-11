@@ -7,6 +7,9 @@ function OnInit(id)
     local ping2 = sunnet.NewService("ping")
     print("[lua] new service ping2  "..ping2)
 
-    local ping3 = sunnet.NewService("ping")
-    print("[lua] new service ping3  "..ping3)
+    local pong = sunnet.NewService("pong")
+    print("[lua] new service pong  "..pong)
+
+    sunnet.Send(ping1, pong, "start")
+    sunnet.Send(ping2, pong, "start")
 end    

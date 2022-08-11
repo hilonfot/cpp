@@ -30,8 +30,7 @@ void Service::OnInit()
     // 注册Sunet系统API
     LuaAPI::Register(luaState);
     // 执行Lua文件
-    string filename = "../service/"+*type+"/init.lua";
-    cout << "文件： " << filename << endl;
+    string filename = "../service/" + *type + "/init.lua";
     int isok = luaL_dofile(luaState, filename.data());
     if (isok == 1)
     {
@@ -40,12 +39,13 @@ void Service::OnInit()
         return;
     }
 
-   //调用Lua函数
-    lua_getglobal(luaState, "OnInit"); 
-    lua_pushinteger(luaState, id); 
+    //调用Lua函数
+    lua_getglobal(luaState, "OnInit");
+    lua_pushinteger(luaState, id);
     isok = lua_pcall(luaState, 1, 0, 0);
-    if(isok != 0){ //成功返回值为0，否则代表失败.
-         cout << "call lua OnInit fail " << lua_tostring(luaState, -1) << endl;
+    if (isok != 0)
+    { //成功返回值为0，否则代表失败.
+        cout << "call lua OnInit fail " << lua_tostring(luaState, -1) << endl;
     }
 }
 
@@ -156,8 +156,17 @@ void Service::SetInGlobal(bool isIn)
 void Service::OnServiceMsg(shared_ptr<ServiceMsg> msg)
 {
     cout << "OnserviceMsg" << endl;
+    // 调用Lua函数
+    lua_getglobal(luaState, "OnServiceMsg");
+    lua_pushinteger(luaState, msg->source);
+    lua_pushlstring(luaState, msg->buff.get(), msg->size);
+    int isok = lua_pcall(luaState, 2, 0, 0);
+    if (isok != 0)
+    {
+        cout << "Call lua OnServiceMsg fail" << lua_tostring(luaState, -1) << endl;
+    }
 }
-
+    
 // 新连接
 void Service::OnAcceptMsg(shared_ptr<SocketAcceptMsg> msg)
 {
